@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penelope</title>
+    <link rel="stylesheet" href="css/style.css"> 
+    <link rel="icon" href="./Img/icon.jpeg" type="image/x-icon"> <!-- Cambia la ruta aquí -->
+
+</head>
+<body>
+    <header>
+        <h1>Penelope/Envios</h1>
+        <nav>
+            <ul class="nav-list">
+                <li><a href="index.html">Volver a inicio</a></li>
+                <li><a href="hogar.html">Hogar y deco</a></li>
+                <li><a href="amig.html">Amigurumis</a></li>
+            </ul>
+        </nav>
+        
+    </header>
+    <main>
+        <div class="contenido">
+            <h2>Medidas</h2>
+            <div class="medidas">
+                <h4>No sabes tu talle? Nosotras te ayudamos</h4>
+                <p>Segui las instrucciones de la imagen dependiendo que prenda quieras y luego elegi tu talle en nuestra seccion de indumentaria.</p>
+                <img src="./Img/medidas.jpg" alt="Como tomar mis medidas" class="encargo">
+           
+            </div>
+        </div>
+    </main>
+    <section id="metodo-pago">
+        <h2>Selecciona un Método de Pago</h2>
+        <ul id="lista-productos"></ul>
+        <form id="formulario-pago" onsubmit="enviarPedido(event)">
+            <label for="metodo-pago-select">Método de Pago:</label>
+            <select id="metodo-pago-select">
+                <option value="tarjeta">Tarjeta de Crédito</option>
+                <option value="paypal">PayPal</option>
+                <option value="efectivo">Efectivo</option>
+            </select>
+    
+            <h3>Opciones de Envío:</h3>
+            <div>
+                <label>
+                    <input type="radio" name="opcion-envio" value="cadete" required>
+                    Cadete
+                </label>
+                <label>
+                    <input type="radio" name="opcion-envio" value="correo-argentino" required>
+                    Correo Argentino
+                </label>
+            </div>
+    
+            <label for="codigo-postal">Código Postal:</label>
+            <input type="text" id="codigo-postal" name="codigo-postal" placeholder="Ingresa tu código postal" required>
+    
+            <p id="costo-envio">Costo de Envío: $0.00</p>
+    
+            <button type="submit">Realizar Pago</button>
+        </form>
+    </section>
+    
+    <script>
+        const costosEnvio = {
+            cadete: { '12345': 5.00, '12346': 6.00 },
+            'correo-argentino': {
+                '2000': 2000, 
+                '2630': 500,
+                '1000': 5600,
+            }
+        };
+    
+        const codigoPostalInput = document.getElementById('codigo-postal');
+        const costoEnvioDisplay = document.getElementById('costo-envio');
+
+        document.querySelectorAll('input[name="opcion-envio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const opcionEnvio = radio.value;
+                const codigoPostal = codigoPostalInput.value;
+
+                if (codigoPostal) {
+                    actualizarCostoEnvio(opcionEnvio, codigoPostal);
+                }
+            });
+        });
+
+        codigoPostalInput.addEventListener('input', () => {
+            const opcionEnvio = document.querySelector('input[name="opcion-envio"]:checked')?.value;
+            const codigoPostal = codigoPostalInput.value;
+
+            if (opcionEnvio) {
+                actualizarCostoEnvio(opcionEnvio, codigoPostal);
+            }
+        });
+
+        function actualizarCostoEnvio(opcionEnvio, codigoPostal) {
+            const costos = costosEnvio[opcionEnvio];
+            const costo = costos[codigoPostal] || 0;
+            costoEnvioDisplay.textContent = `Costo de Envío: $${costo.toFixed(2)}`;
+        }
+
+        function enviarPedido(event) {
+            event.preventDefault(); 
+            
+            const metodoPago = document.getElementById('metodo-pago-select').value;
+            const opcionEnvio = document.querySelector('input[name="opcion-envio"]:checked').value;
+            const codigoPostal = codigoPostalInput.value;
+            const costoEnvio = costoEnvioDisplay.textContent.replace('Costo de Envío: $', '');
+            
+            // Obtener productos del carrito
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            let productosMensaje = '';
+            let totalPrice = 0;
+
+            cart.forEach(item => {
+                productosMensaje += `${item.name} - Precio: $${item.price}\n`;
+                totalPrice += item.price;
+            });
+
+            // Mensaje con toda la información
+            const mensaje = `Nuevo pedido:\nMétodo de Pago: ${metodoPago}\nOpción de Envío: ${opcionEnvio}\nCódigo Postal: ${codigoPostal}\nCosto de Envío: $${costoEnvio}\n\nProductos:\n${productosMensaje}Total: $${totalPrice}`;
+
+            const numeroTelefono = '5493465520310'; 
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroTelefono}&text=${encodeURIComponent(mensaje)}`;
+            
+            window.open(urlWhatsApp, '_blank'); 
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const listaProductos = document.getElementById('lista-productos');
+            let totalPrice = 0;
+
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - Precio: $${item.price}`;
+                listaProductos.appendChild(li);
+                totalPrice += item.price;
+            });
+
+            const totalLi = document.createElement('li');
+            totalLi.textContent = `Total: $${totalPrice}`;
+            listaProductos.appendChild(totalLi);
+        });
+    </script>
+    
+
+<footer>
+    <p class="footer">&copy; 2024 Indumentaria Crochet. Todos los derechos reservados.</p>
+</footer>
+</body>
+</html>
